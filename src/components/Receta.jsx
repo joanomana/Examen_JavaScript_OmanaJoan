@@ -182,7 +182,7 @@ export default function Receta() {
     })
 
     return (
-        <div className="p-6 max-w-2xl mx-auto">
+        <div className="p-6 w-auto max-w-2xl mx-auto">
             <h1 className="text-2xl font-bold mb-4">Crea tu receta</h1>
 
             <div className="mb-4 flex flex-col gap-2">
