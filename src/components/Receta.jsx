@@ -6,7 +6,6 @@ import Swal from 'sweetalert2';
 export default function Receta() {
     const [items, setItems] = useState([]);
     const [nombre, setNombre] = useState('');
-    const [descripcion, setDescripcion] = useState('');
     const [ingredientes, setIngredientes] = useState('');
     const [instrucciones, setInstrucciones] = useState('');
     const [tiempo, setTiempo] = useState('');
@@ -15,13 +14,11 @@ export default function Receta() {
     const [nivel, setNivel] = useState('');
     const [filterDate, setFilterDate] = useState('');
 
-    // Cargar los datos del localStorage al montar el componente
     useEffect(() => {
         const storedItems = JSON.parse(localStorage.getItem('items')) || [];
         setItems(storedItems);
     }, []);
 
-    // Guardar los datos en localStorage
     const saveToLocalStorage = (data) => {
         localStorage.setItem('items', JSON.stringify(data));
     };
@@ -34,11 +31,21 @@ export default function Receta() {
         return;
         }
 
+        if (tiempo <=0 || porciones<=0 ){
+            Swal.fire('Error','No puedes ingresar valores negativos o iguales a 0','error')
+            return;
+        }
+
         const newItem = {
-        id: Date.now(), // Genera un ID único
-        date: new Date().toISOString(), // Usamos ISO para manejar bien fechas
+        id: Date.now(), 
+        date: new Date().toISOString(), 
         nombre,
-        descripcion,
+        ingredientes,
+        instrucciones,
+        tiempo,
+        porciones,
+        categoria,
+        nivel
         };
 
         const updatedItems = [...items, newItem];
@@ -46,7 +53,12 @@ export default function Receta() {
         saveToLocalStorage(updatedItems);
 
         setNombre('');
-        setDescripcion('');
+        setIngredientes('');
+        setInstrucciones('');
+        setTiempo('');
+        setPorciones('');
+        setCategoria('');
+        setNivel('');
 
         Swal.fire('Éxito', '¡Item agregado!', 'success');
     };
@@ -71,20 +83,49 @@ export default function Receta() {
 
     const handleEdit = (item) => {
         Swal.fire({
-        title: 'Editar item',
+        title: 'Editar receta',
         html: `
+            
             <input id="swal-input1" class="swal2-input" placeholder="Nombre" value="${item.nombre}">
-            <input id="swal-input2" class="swal2-input" placeholder="Descripción" value="${item.descripcion}">
+            <input id="swal-input2" class="swal2-input" placeholder="Descripción" value="${item.ingredientes}">
+            <input id="swal-input3" class="swal2-input" placeholder="Descripción" value="${item.instrucciones}">
+            <input id="swal-input4" class="swal2-input" placeholder="Descripción" value="${item.tiempo}">
+            <input id="swal-input5" class="swal2-input" placeholder="Descripción" value="${item.porciones}">
+            <div class="flex justify-center items-center">
+                <div class="grid grid-cols-2 items-center justify-center gap-4 max-w-2/3">
+                    <select id="swal-input6" class="p-2 border-2 border-gray-400 mt-2 " placeholder="Descripción" value="${item.categoria}">
+                        <option>${item.categoria}</option>
+                        <option>Desayuno</option>
+                        <option>Almuerzo</option>
+                        <option>Cena</option>
+                        <option>Postre</option>
+                    </select>
+                    <select id="swal-input7" class="p-2 border-2 border-gray-400 mt-2 " placeholder="Descripción" value="${item.categoria}">
+                        <option>${item.nivel}</option>
+                        <option>Facil</option>
+                        <option>Medio</option>
+                        <option>Dificil</option>
+                    </select>
+                </div>
+            </div>
         `,
         focusConfirm: false,
+        showCancelButton: true,
         preConfirm: () => {
             const newName = document.getElementById('swal-input1').value;
-            const newDescription = document.getElementById('swal-input2').value;
-            if (!newName || !newDescription) {
+            const newIngrediente = document.getElementById('swal-input2').value;
+            const newInstruccion = document.getElementById('swal-input3').value;
+            const newTiempo = document.getElementById('swal-input4').value;
+            const newPorciones = document.getElementById('swal-input5').value;
+            const newCategoria = document.getElementById('swal-input6').value;
+            const newNivel = document.getElementById('swal-input7').value;
+            if (!newName || !newIngrediente || !newInstruccion || !newTiempo || !newPorciones || !newCategoria || !newNivel) {
             Swal.showValidationMessage('Todos los campos son requeridos');
             return;
             }
-            return { nombre: newName, descripcion: newDescription };
+            return { nombre: newName, ingredientes: newIngrediente, instrucciones: newInstruccion,
+                tiempo: newTiempo, porciones: newPorciones, categoria: newCategoria, nivel: newNivel
+                };
         }
         }).then((result) => {
         if (result.isConfirmed) {
@@ -100,22 +141,25 @@ export default function Receta() {
 
     const handleView = (item) => {
         Swal.fire({
-        title: `Detalles de ${item.nombre}`,
+        title: `${item.nombre}`,
         html: `
             <div>
-            <h1>${item.nombre}</h1>
-            <p>${item.descripcion}</p>
+            <h1> <strong>Ingredientes:</strong> ${item.ingredientes}</h1>
+            <p> <strong>Instrucciones:</strong> ${item.instrucciones}</p>
+            <p> <strong>Tiempo de preparacion:</strong> ${item.tiempo} minutos</p>
+            <p> <strong>Porciones:</strong> ${item.porciones}</p>
+            <p> <strong>Categoria:</strong> ${item.categoria}</p>
+            <p> <strong>Dificultad:</strong> ${item.nivel}</p>
             <p><strong>Fecha de creación:</strong> ${new Date(item.date).toLocaleDateString()}</p>
-            <p>La hora de creación es: ${new Date(item.date).toLocaleTimeString()}</p>
+            <p><strong>La hora de creación es:</strong> ${new Date(item.date).toLocaleTimeString()}</p>
             </div>`,
         icon: 'info',
         });
     };
 
-    // Aplicamos filtro por fecha
     const filteredItems = items.filter((item) => {
         if (!filterDate) return true;
-        const itemDate = new Date(item.date).toISOString().split('T')[0]; // yyyy-mm-dd
+        const itemDate = new Date(item.date).toISOString().split('T')[0]; 
         return itemDate === filterDate;
     });
 
@@ -124,6 +168,7 @@ export default function Receta() {
             <h1 className="text-2xl font-bold mb-4">Crea tu receta</h1>
 
             <div className="mb-4 flex flex-col gap-2">
+                <h1>Ingresa el nombre de tu receta</h1>
                 <input
                 type="text"
                 placeholder="Nombre"
@@ -131,53 +176,61 @@ export default function Receta() {
                 onChange={(e) => setNombre(e.target.value)}
                 className="border p-2 rounded"
                 />
+                <h1>Ingresa los ingredientes</h1>
                 <input
                 type="text"
                 placeholder="Ingredientes"
-                value={descripcion}
-                onChange={(e) => setDescripcion(e.target.value)}
+                value={ingredientes}
+                onChange={(e) => setIngredientes(e.target.value)}
                 className="border p-2 rounded"
                 />
+                <h1>Ingresa las instrucciones</h1>
                 <input
                 type="text"
                 placeholder="Instrucciones de preparacion"
-                value={descripcion}
-                onChange={(e) => setDescripcion(e.target.value)}
+                value={instrucciones}
+                onChange={(e) => setInstrucciones(e.target.value)}
                 className="border p-2 rounded"
                 />
+                <h1>Ingresa el tiempo de preparacion en minutos</h1>
                 <input
-                type="text"
+                type="number"
                 placeholder="Tiempo de preparacion"
-                value={descripcion}
-                onChange={(e) => setDescripcion(e.target.value)}
+                value={tiempo}
+                onChange={(e) => setTiempo(e.target.value)}
                 className="border p-2 rounded"
                 />
+                <h1>Ingresa el numero de porciones</h1>
                 <input
                 type="number"
                 placeholder="Numero de porciones"
-                value={descripcion}
-                onChange={(e) => setDescripcion(e.target.value)}
+                value={porciones}
+                onChange={(e) => setPorciones(e.target.value)}
                 className="border p-2 rounded"
                 />
+                <h1>Selecciona una categoria</h1>
                 <select
                 type="select"
                 placeholder="Categoria"
-                value={descripcion}
-                onChange={(e) => setDescripcion(e.target.value)}
+                value={categoria}
+                onChange={(e) => setCategoria(e.target.value)}
                 className="border p-2 rounded"
-                > 
+                >
+                    <option>Escoge una opcion</option>
                     <option>Desayuno</option>
                     <option>Almuerzo</option>
                     <option>Cena</option>
                     <option>Postre</option>
                 </select>
+                <h1>Ingresa el nivel de dificultad</h1>
                 <select
                 type="select"
                 placeholder="Dificultad"
-                value={descripcion}
-                onChange={(e) => setDescripcion(e.target.value)}
+                value={nivel}
+                onChange={(e) => setNivel(e.target.value)}
                 className="border p-2 rounded"
                 >
+                    <option>Escoge una opcion</option>
                     <option>Facil</option>
                     <option>Medio</option>
                     <option>Dificil</option>
