@@ -12,7 +12,9 @@ export default function Receta() {
     const [porciones, setPorciones] = useState('');
     const [categoria, setCategoria] = useState('');
     const [nivel, setNivel] = useState('');
-    const [filterDate, setFilterDate] = useState('');
+    const [filterCategory, setFilterCategory] = useState('');
+    const [filterLevel , setFilterLevel] = useState('');
+    const [busqueda, setBusqueda] = useState('');
 
     useEffect(() => {
         const storedItems = JSON.parse(localStorage.getItem('items')) || [];
@@ -158,10 +160,26 @@ export default function Receta() {
     };
 
     const filteredItems = items.filter((item) => {
-        if (!filterDate) return true;
-        const itemDate = new Date(item.date).toISOString().split('T')[0]; 
-        return itemDate === filterDate;
+        if (filterCategory && filterLevel){
+            const itemCategory = item.categoria;
+            const itemLevel = item.nivel;
+            return itemCategory === filterCategory && itemLevel === filterLevel;
+        }
+        else if (filterCategory){
+            const itemCategory = item.categoria;
+            return  itemCategory === filterCategory;
+        }
+        else if (filterLevel){
+            const itemLevel = item.nivel;
+            return itemLevel === filterLevel;
+        }
+        else{
+            return true;
+        }
     });
+    const filterByName = items.filter((item)=>{
+
+    })
 
     return (
         <div className="p-6 max-w-2xl mx-auto">
@@ -243,29 +261,67 @@ export default function Receta() {
                 Agregar
                 </button>
 
-                {/* Filtro por fecha */}
                 <div className="flex flex-col md:flex-row md:items-center md:gap-2 mt-4">
-                <input
-                    type="date"
-                    value={filterDate}
-                    onChange={(e) => setFilterDate(e.target.value)}
+                    <select
+                        type="select"
+                        value={filterCategory}
+                        onChange={(e) => setFilterCategory(e.target.value)}
+                        className="border p-2 rounded"
+                    >
+                        <option>Filtrar por categoria</option>
+                        <option>Desayuno</option>
+                        <option>Almuerzo</option>
+                        <option>Cena</option>
+                        <option>Postre</option>
+                    </select>
+                    <button
+                        onClick={() => setFilterCategory('')}
+                        className="bg-gray-400 text-white py-2 px-4 rounded hover:bg-gray-500 mt-2 md:mt-0"
+                    >
+                        Limpiar Filtro
+                    </button>
+                </div>
+                <div className="flex flex-col md:flex-row md:items-center md:gap-2 mt-4">
+                    <select
+                        type="select"
+                        value={filterLevel}
+                        onChange={(e) => setFilterLevel(e.target.value)}
+                        className="border p-2 rounded"
+                    >
+                        <option>Filtrar por dificultad</option>
+                        <option>Facil</option>
+                        <option>Medio</option>
+                        <option>Dificil</option>
+                </select>
+                    <button
+                        onClick={() => setFilterLevel('')}
+                        className="bg-gray-400 text-white py-2 px-4 rounded hover:bg-gray-500 mt-2 md:mt-0"
+                    >
+                        Limpiar Filtro
+                    </button>
+                </div>
+                <div className="flex items-center justify-center gap-6">
+                    <input
+                    type="text"
+                    placeholder="Busca por nombre"
+                    value={busqueda}
+                    onChange={(e) => setTiempo(e.target.value)}
                     className="border p-2 rounded"
-                />
-                <button
-                    onClick={() => setFilterDate('')}
-                    className="bg-gray-400 text-white py-2 px-4 rounded hover:bg-gray-500 mt-2 md:mt-0"
-                >
-                    Limpiar Filtro
-                </button>
+                    >
+                    </input>
+                    <button
+                        onClick={() => setFilterLevel('')}
+                        className="bg-gray-400 text-white py-2 px-4 rounded hover:bg-gray-500 mt-2 md:mt-0"
+                    >
+                        Limpiar
+                    </button>
                 </div>
 
-                {/* Contador de resultados */}
                 <p className="text-gray-600 mt-2">
                 Mostrando {filteredItems.length} {filteredItems.length === 1 ? 'resultado' : 'resultados'}
                 </p>
             </div>
 
-            {/* Listado de items */}
             <div className="space-y-4">
                 {filteredItems.length === 0 ? (
                 <p className="text-gray-500">No hay items guardados.</p>
@@ -274,9 +330,9 @@ export default function Receta() {
                     <div key={item.id} className="border p-4 rounded shadow flex flex-col md:flex-row md:justify-between md:items-center">
                         <div>
                             <h2 className="text-xl font-semibold">{item.nombre}</h2>
-                            <p className="text-gray-600">{item.descripcion}</p>
+                            <p className="text-gray-600">{item.ingredientes}</p>
                         </div>
-                        <div className="flex gap-2 mt-2 md:mt-0">
+                        <div className=" gap-2 mt-2 md:mt-0 flex flex-col">
                             <button
                             onClick={() => handleView(item)}
                             className="bg-green-500 text-white py-1 px-3 rounded hover:bg-green-600"
